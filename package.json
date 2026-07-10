@@ -1,0 +1,41 @@
+{
+  "name": "claude-containers",
+  "version": "1.0.0",
+  "description": "A container-switcher desktop shell for claude.ai — run multiple isolated Claude sessions in one window.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "setup": "npm install",
+    "make-icon": "node scripts/make-icon.js",
+    "dist": "electron-builder"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.local.claude-containers",
+    "productName": "Claude Containers",
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*",
+      "pulse-overlay/**/*",
+      "assets/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "assets/icon.png"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico"
+    },
+    "linux": {
+      "target": "AppImage",
+      "icon": "assets/icon.png"
+    }
+  }
+}

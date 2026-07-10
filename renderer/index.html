@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self';" />
+  <title>Claude Containers</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="rail" role="navigation" aria-label="Container switcher">
+    <div id="rail-list"></div>
+    <button id="add-btn" title="Add container" aria-label="Add container">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <path d="M9 3V15M3 9H15" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+      </svg>
+    </button>
+    <button id="settings-btn" title="Settings" aria-label="Settings">
+      <svg width="17" height="17" viewBox="0 0 20 20" fill="none">
+        <path
+          d="M10 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z"
+          stroke="currentColor" stroke-width="1.6" />
+        <path
+          d="M16.2 12.5a1.35 1.35 0 00.27 1.49l.05.05a1.64 1.64 0 11-2.32 2.32l-.05-.05a1.35 1.35 0 00-1.49-.27 1.35 1.35 0 00-.82 1.24v.14a1.64 1.64 0 11-3.28 0v-.07a1.35 1.35 0 00-.88-1.24 1.35 1.35 0 00-1.49.27l-.05.05a1.64 1.64 0 11-2.32-2.32l.05-.05a1.35 1.35 0 00.27-1.49 1.35 1.35 0 00-1.24-.82h-.14a1.64 1.64 0 110-3.28h.07a1.35 1.35 0 001.24-.88 1.35 1.35 0 00-.27-1.49l-.05-.05A1.64 1.64 0 115.6 3.16l.05.05a1.35 1.35 0 001.49.27h.06a1.35 1.35 0 00.82-1.24v-.14a1.64 1.64 0 113.28 0v.07a1.35 1.35 0 00.82 1.24h.06a1.35 1.35 0 001.49-.27l.05-.05a1.64 1.64 0 112.32 2.32l-.05.05a1.35 1.35 0 00-.27 1.49v.06a1.35 1.35 0 001.24.82h.14a1.64 1.64 0 110 3.28h-.07a1.35 1.35 0 00-1.24.82z"
+          stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" />
+      </svg>
+    </button>
+  </div>
+
+  <!-- Add / rename modal -->
+  <div id="modal-overlay" class="hidden">
+    <div id="modal" role="dialog" aria-modal="true">
+      <h2 id="modal-title">New container</h2>
+      <label for="name-input">Name</label>
+      <input id="name-input" type="text" maxlength="24" placeholder="e.g. Work" autocomplete="off" />
+
+      <div class="field-label">Color</div>
+      <div id="color-swatches"></div>
+
+      <div class="modal-actions">
+        <button id="modal-cancel" class="btn-ghost">Cancel</button>
+        <button id="modal-confirm" class="btn-primary">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings modal -->
+  <div id="settings-overlay" class="hidden">
+    <div id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+      <h2 id="settings-title">Settings</h2>
+
+      <div class="setting-row">
+        <div class="setting-text">
+          <label for="setting-auto-unload">Auto-unload inactive containers</label>
+          <p>Frees RAM by unloading a container automatically after it's been in the background this long.</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="setting-auto-unload" />
+          <span class="switch-track"></span>
+        </label>
+      </div>
+      <div class="setting-subrow" id="auto-unload-seconds-row">
+        <label for="setting-auto-unload-seconds">Unload after</label>
+        <input type="number" id="setting-auto-unload-seconds" min="5" max="3600" step="1" />
+        <span>seconds</span>
+      </div>
+
+      <div class="setting-divider"></div>
+
+      <div class="setting-row">
+        <div class="setting-text">
+          <label for="setting-resume">Resume last active container on launch</label>
+          <p>Otherwise the app always opens on the first container in your list.</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="setting-resume" />
+          <span class="switch-track"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-text">
+          <label for="setting-confirm-delete">Confirm before deleting a container</label>
+          <p>Ask before clearing a container's login and local data.</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="setting-confirm-delete" />
+          <span class="switch-track"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-text">
+          <label for="setting-usage-overlay">Show usage limits overlay</label>
+          <p>The 5h/7d usage bars and token estimate inside each container. Takes effect on next reload.</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="setting-usage-overlay" />
+          <span class="switch-track"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-text">
+          <label for="setting-always-on-top">Keep window always on top</label>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="setting-always-on-top" />
+          <span class="switch-track"></span>
+        </label>
+      </div>
+
+      <div class="setting-divider"></div>
+      <div class="settings-group-title">Performance &amp; memory</div>
+
+      <div class="setting-row">
+        <div class="setting-text">
+          <label for="setting-eco-mode">Eco mode (only the active container loaded)</label>
+          <p>The lowest-RAM option: exactly one Claude view runs at a time. Every switch reloads (2–5s) and loses scroll position / unsent drafts.</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="setting-eco-mode" />
+          <span class="switch-track"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-text">
+          <label for="setting-limit-loaded">Limit loaded containers</label>
+          <p>Keep at most N containers in memory; switching to another auto-unloads your least-recently-used one.</p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="setting-limit-loaded" />
+          <span class="switch-track"></span>
+        </label>
+      </div>
+      <div class="setting-subrow" id="max-loaded-row">
+        <label for="setting-max-loaded">Keep at most</label>
+        <input type="number" id="setting-max-loaded" min="1" max="20" step="1" />
+        <span>loaded</span>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-text">
+          <label for="setting-disable-gpu">Disable GPU acceleration</label>
+          <p>Removes a whole separate GPU process (~100–150MB). Scrolling/animations may be slightly choppier. <span class="restart-hint">Takes effect after restart.</span></p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="setting-disable-gpu" />
+          <span class="switch-track"></span>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-text">
+          <label for="setting-cap-heap">Cap renderer memory</label>
+          <p>Hard-limits each container's JavaScript heap, forcing more frequent garbage collection. A very long chat could slow down if set too low. <span class="restart-hint">Takes effect after restart.</span></p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="setting-cap-heap" />
+          <span class="switch-track"></span>
+        </label>
+      </div>
+      <div class="setting-subrow" id="heap-mb-row">
+        <label for="setting-heap-mb">Heap limit</label>
+        <input type="number" id="setting-heap-mb" min="256" max="4096" step="64" />
+        <span>MB</span>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-text">
+          <label for="setting-extra-flags">Extra memory-saving Chromium flags</label>
+          <p>Disables background networking, sync, default-apps, and component updates. Small saving (~5–20MB), no real downside. <span class="restart-hint">Takes effect after restart.</span></p>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="setting-extra-flags" />
+          <span class="switch-track"></span>
+        </label>
+      </div>
+
+      <div class="modal-actions">
+        <button id="settings-close" class="btn-primary">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generic confirm / info dialog (replaces native alert/confirm) -->
+  <div id="confirm-overlay" class="hidden">
+    <div id="confirm-modal" role="dialog" aria-modal="true">
+      <p id="confirm-message"></p>
+      <div class="modal-actions">
+        <button id="confirm-cancel" class="btn-ghost">Cancel</button>
+        <button id="confirm-ok" class="btn-primary">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Per-container context menu -->
+  <div id="context-menu" class="hidden">
+    <button data-action="rename">Rename</button>
+    <button data-action="reload">Reload</button>
+    <button data-action="unload">Unload (free RAM)</button>
+    <button data-action="delete" class="danger">Delete</button>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>
