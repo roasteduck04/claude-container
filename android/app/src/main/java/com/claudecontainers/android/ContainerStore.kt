@@ -3,6 +3,8 @@ package com.claudecontainers.android
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 
 class ContainerStore(private val dir: File) {
 
@@ -25,7 +27,7 @@ class ContainerStore(private val dir: File) {
                 )
             }
             out
-        } catch (e: Exception) {
+        } catch (e: org.json.JSONException) {
             mutableListOf()
         }
     }
@@ -75,8 +77,9 @@ class ContainerStore(private val dir: File) {
         if (!dir.exists()) dir.mkdirs()
         val tmp = File(dir, "containers.json.tmp")
         tmp.writeText(text)
-        val target = file
-        if (target.exists()) target.delete()
-        tmp.renameTo(target)
+        Files.move(
+            tmp.toPath(), file.toPath(),
+            StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE,
+        )
     }
 }
