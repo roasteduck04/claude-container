@@ -20,7 +20,7 @@ class SettingsStore(private val dir: File) {
         return try {
             val o = JSONObject(file.readText())
             Settings(
-                activeId = if (o.isNull("activeId")) null else o.optString("activeId", null),
+                activeId = if (o.isNull("activeId")) null else o.getString("activeId"),
                 confirmBeforeDelete = o.optBoolean("confirmBeforeDelete", true),
                 resumeLastActive = o.optBoolean("resumeLastActive", true),
             )
