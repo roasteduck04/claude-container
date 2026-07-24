@@ -6,14 +6,24 @@ import android.webkit.WebView
 class ClaudeApp : Application() {
     override fun onCreate() {
         super.onCreate()
+        // The :phoenix trampoline process runs this too but never hosts a WebView.
+        // Only pin storage in the main process.
+        if (getProcessName() != packageName) return
+
         // Pin THIS process to the active container's isolated storage.
         // Must happen before any WebView is created in the process.
-        val activeId = SettingsStore(filesDir).load().activeId
+        val activeId = try {
+            SettingsStore(filesDir).load().activeId
+        } catch (e: Exception) {
+            // A transient read failure should degrade to default storage,
+            // not crash the app at launch.
+            null
+        }
         if (activeId != null) {
             try {
                 WebView.setDataDirectorySuffix("container_$activeId")
             } catch (e: IllegalStateException) {
-                // Already set this process — safe to ignore.
+                // Already set for this process — safe to ignore.
             }
         }
     }
