@@ -1,0 +1,6 @@
+<resources>
+    <dimen name="rail_width">72dp</dimen>
+    <dimen name="badge_size">48dp</dimen>
+    <dimen name="badge_margin">12dp</dimen>
+    <dimen name="badge_radius">16dp</dimen>
+</resources>
