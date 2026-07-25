@@ -35,7 +35,8 @@ class MainActivity : AppCompatActivity() {
         val drawer = findViewById<DrawerLayout>(R.id.drawer_layout)
         val rail = findViewById<RailView>(R.id.rail)
         findViewById<ImageButton>(R.id.menu_button).setOnClickListener {
-            drawer.openDrawer(rail)
+            // On a tablet the rail is docked (not a drawer child), so openDrawer throws.
+            try { drawer.openDrawer(rail) } catch (e: Exception) { /* docked tablet */ }
         }
 
         rail.onSelect = { c ->
@@ -50,7 +51,9 @@ class MainActivity : AppCompatActivity() {
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (drawer.isDrawerOpen(rail)) drawer.closeDrawers()
+                // isDrawerOpen throws if the rail is docked (tablet) rather than a drawer.
+                val drawerOpen = try { drawer.isDrawerOpen(rail) } catch (e: Exception) { false }
+                if (drawerOpen) drawer.closeDrawers()
                 else if (webView.canGoBack()) webView.goBack()
                 else finish()
             }

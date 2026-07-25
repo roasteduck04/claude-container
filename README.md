@@ -12,6 +12,16 @@ background when you switch, so drafts and scroll position are preserved.
 
 <br>
 
+## Android
+
+An experimental native Android port lives in [`android/`](android/). It
+recreates the isolated multi-session concept using per-process WebView
+storage (each container gets its own `setDataDirectorySuffix`, switched via a
+process relaunch). See [`android/README.md`](android/README.md) to build and
+install the APK.
+
+<br>
+
 ## Features
 
 - Icon rail on the left (badges with initials + a color you pick), claude.ai
