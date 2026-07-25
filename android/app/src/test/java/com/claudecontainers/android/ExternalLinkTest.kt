@@ -14,6 +14,13 @@ class ExternalLinkTest {
     @Test fun otherHostsAreExternal() {
         assertEquals(false, ExternalLink.isInternal("google.com"))
         assertEquals(false, ExternalLink.isInternal("evil-claude.ai.example.com"))
+        assertEquals(false, ExternalLink.isInternal("example.com"))
         assertEquals(false, ExternalLink.isInternal(null))
+    }
+
+    @Test fun identityProviderHostsAreInternalForSignIn() {
+        assertEquals(true, ExternalLink.isInternal("accounts.google.com"))
+        assertEquals(true, ExternalLink.isInternal("appleid.apple.com"))
+        assertEquals(true, ExternalLink.isInternal("login.microsoftonline.com"))
     }
 }

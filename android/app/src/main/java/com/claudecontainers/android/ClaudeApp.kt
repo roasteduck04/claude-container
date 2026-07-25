@@ -10,6 +10,9 @@ class ClaudeApp : Application() {
         // Only pin storage in the main process.
         if (getProcessName() != packageName) return
 
+        // Wipe any containers queued for deletion while no WebView is open yet.
+        StorageCleaner.processPending(filesDir)
+
         // Pin THIS process to the active container's isolated storage.
         // Must happen before any WebView is created in the process.
         val activeId = try {

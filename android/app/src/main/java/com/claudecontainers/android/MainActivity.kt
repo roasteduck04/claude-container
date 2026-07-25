@@ -3,11 +3,16 @@ package com.claudecontainers.android
 import android.annotation.SuppressLint
 import android.app.DownloadManager
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.os.Message
 import android.webkit.CookieManager
 import android.webkit.RenderProcessGoneDetail
+import android.webkit.WebChromeClient
+import android.webkit.WebResourceRequest
 import android.webkit.WebView
+import android.webkit.WebViewClient
 import android.widget.EditText
 import android.widget.ImageButton
 import androidx.activity.OnBackPressedCallback
@@ -24,10 +29,25 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("SetJavaScriptEnabled")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
         containerStore = ContainerStore(filesDir)
         settingsStore = SettingsStore(filesDir)
+
+        // Resolve the active container BEFORE inflating any WebView. The WebView
+        // storage directory is locked when the WebView is constructed, and
+        // ClaudeApp only set a suffix for a valid persisted activeId — so if we
+        // need to bootstrap or repair the active id, relaunch first and never
+        // construct a WebView in this (wrong-suffix) process.
+        val active = settingsStore.load().activeId
+        val containers = containerStore.load()
+        if (active == null || containers.none { it.id == active }) {
+            val next = containers.firstOrNull() ?: containerStore.add("Claude", "#D97757")
+            settingsStore.setActiveId(next.id)
+            Phoenix.restart(this)
+            return
+        }
+
+        setContentView(R.layout.activity_main)
 
         webView = findViewById(R.id.web_view)
         configureWebView(webView)
@@ -60,30 +80,12 @@ class MainActivity : AppCompatActivity() {
         })
 
         renderRail()
-        loadActiveContainer()
+        webView.loadUrl("https://claude.ai/")
     }
 
     private fun renderRail() {
         val rail = findViewById<RailView>(R.id.rail)
         rail.render(containerStore.load(), settingsStore.load().activeId)
-    }
-
-    private fun loadActiveContainer() {
-        val active = settingsStore.load().activeId
-        val containers = containerStore.load()
-        // If no active container yet, bootstrap one so first launch shows Claude.
-        if (active == null || containers.none { it.id == active }) {
-            if (containers.isEmpty()) {
-                val c = containerStore.add("Claude", "#D97757")
-                settingsStore.setActiveId(c.id)
-                Phoenix.restart(this)
-                return
-            }
-            settingsStore.setActiveId(containers.first().id)
-            Phoenix.restart(this)
-            return
-        }
-        webView.loadUrl("https://claude.ai/")
     }
 
     private fun showAddDialog() {
@@ -133,14 +135,20 @@ class MainActivity : AppCompatActivity() {
 
     private fun confirmRemove(c: Container) {
         val doRemove = {
+            val wasActive = settingsStore.load().activeId == c.id
             containerStore.remove(c.id)
-            // Best-effort wipe of this container's isolated storage.
-            deleteContainerStorage(c.id)
-            val remaining = containerStore.load()
-            if (settingsStore.load().activeId == c.id) {
-                settingsStore.setActiveId(remaining.firstOrNull()?.id)
+            if (wasActive) {
+                // This container's WebView is live in this process; defer the
+                // storage wipe to the next cold start (before any WebView exists).
+                StorageCleaner.enqueue(filesDir, c.id)
+                val remaining = containerStore.load()
+                // Recreate a default if that was the last one, so we relaunch once.
+                val next = remaining.firstOrNull() ?: containerStore.add("Claude", "#D97757")
+                settingsStore.setActiveId(next.id)
                 Phoenix.restart(this)
             } else {
+                // Not open in any process — safe to wipe off the UI thread now.
+                Thread { StorageCleaner.deleteNow(filesDir, c.id) }.start()
                 renderRail()
             }
         }
@@ -154,14 +162,6 @@ class MainActivity : AppCompatActivity() {
         } else doRemove()
     }
 
-    private fun deleteContainerStorage(id: String) {
-        try {
-            val base = filesDir.parentFile ?: return
-            val dir = java.io.File(base, "app_webview_container_$id")
-            if (dir.exists()) dir.deleteRecursively()
-        } catch (e: Exception) { /* best effort */ }
-    }
-
     @SuppressLint("SetJavaScriptEnabled")
     private fun configureWebView(wv: WebView) {
         wv.settings.apply {
@@ -170,6 +170,7 @@ class MainActivity : AppCompatActivity() {
             databaseEnabled = true
             mediaPlaybackRequiresUserGesture = false
             javaScriptCanOpenWindowsAutomatically = true
+            setSupportMultipleWindows(true)
         }
         CookieManager.getInstance().apply {
             setAcceptCookie(true)
@@ -179,6 +180,40 @@ class MainActivity : AppCompatActivity() {
             override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
                 // Reload the container rather than letting the app crash.
                 view.loadUrl("https://claude.ai/")
+                return true
+            }
+        }
+        // Handle window.open()/target=_blank (e.g. OAuth sign-in popups): capture
+        // the popup's target and route it — in-app for Claude/identity hosts, to
+        // the system browser otherwise — so sign-in isn't silently swallowed.
+        wv.webChromeClient = object : WebChromeClient() {
+            override fun onCreateWindow(
+                view: WebView,
+                isDialog: Boolean,
+                isUserGesture: Boolean,
+                resultMsg: Message,
+            ): Boolean {
+                val popup = WebView(this@MainActivity)
+                popup.settings.javaScriptEnabled = true
+                popup.webViewClient = object : WebViewClient() {
+                    override fun shouldOverrideUrlLoading(v: WebView, req: WebResourceRequest): Boolean {
+                        val url = req.url
+                        if (ExternalLink.isInternal(url.host)) {
+                            webView.loadUrl(url.toString())
+                        } else {
+                            try {
+                                startActivity(
+                                    Intent(Intent.ACTION_VIEW, url)
+                                        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                )
+                            } catch (e: Exception) { /* no handler */ }
+                        }
+                        v.post { v.destroy() }
+                        return true
+                    }
+                }
+                (resultMsg.obj as WebView.WebViewTransport).webView = popup
+                resultMsg.sendToTarget()
                 return true
             }
         }
