@@ -2,14 +2,32 @@ package com.claudecontainers.android
 
 import org.json.JSONObject
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 
 data class Settings(
     val activeId: String? = null,
     val confirmBeforeDelete: Boolean = true,
     val resumeLastActive: Boolean = true,
-)
+    /**
+     * How many containers stay warm (one live host process each). More warm
+     * containers means instant switching but real memory cost — each one is a
+     * full Chromium renderer. Clamped to [SlotStore.MAX_SLOTS].
+     */
+    val warmSlots: Int = DEFAULT_WARM_SLOTS,
+    /**
+     * When false (the default) the app suppresses the soft keyboard that
+     * claude.ai's auto-focused composer would otherwise pop up on every load.
+     * Tapping the composer still opens it.
+     */
+    val focusComposerOnOpen: Boolean = false,
+    /** WebView text zoom, percent. */
+    val textZoom: Int = 100,
+) {
+    companion object {
+        const val DEFAULT_WARM_SLOTS = 3
+        const val MIN_TEXT_ZOOM = 70
+        const val MAX_TEXT_ZOOM = 180
+    }
+}
 
 class SettingsStore(private val dir: File) {
 
@@ -23,6 +41,11 @@ class SettingsStore(private val dir: File) {
                 activeId = if (o.isNull("activeId")) null else o.getString("activeId"),
                 confirmBeforeDelete = o.optBoolean("confirmBeforeDelete", true),
                 resumeLastActive = o.optBoolean("resumeLastActive", true),
+                warmSlots = o.optInt("warmSlots", Settings.DEFAULT_WARM_SLOTS)
+                    .coerceIn(1, SlotStore.MAX_SLOTS),
+                focusComposerOnOpen = o.optBoolean("focusComposerOnOpen", false),
+                textZoom = o.optInt("textZoom", 100)
+                    .coerceIn(Settings.MIN_TEXT_ZOOM, Settings.MAX_TEXT_ZOOM),
             )
         } catch (e: org.json.JSONException) {
             Settings()
@@ -34,20 +57,16 @@ class SettingsStore(private val dir: File) {
             .put("activeId", settings.activeId ?: JSONObject.NULL)
             .put("confirmBeforeDelete", settings.confirmBeforeDelete)
             .put("resumeLastActive", settings.resumeLastActive)
-        writeAtomic(o.toString())
+            .put("warmSlots", settings.warmSlots.coerceIn(1, SlotStore.MAX_SLOTS))
+            .put("focusComposerOnOpen", settings.focusComposerOnOpen)
+            .put(
+                "textZoom",
+                settings.textZoom.coerceIn(Settings.MIN_TEXT_ZOOM, Settings.MAX_TEXT_ZOOM)
+            )
+        AtomicWrite.write(dir, "settings.json", o.toString())
     }
 
     fun setActiveId(id: String?) {
         save(load().copy(activeId = id))
-    }
-
-    private fun writeAtomic(text: String) {
-        if (!dir.exists()) dir.mkdirs()
-        val tmp = File(dir, "settings.json.tmp")
-        tmp.writeText(text)
-        Files.move(
-            tmp.toPath(), file.toPath(),
-            StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE,
-        )
     }
 }

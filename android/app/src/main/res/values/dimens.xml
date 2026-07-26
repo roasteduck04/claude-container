@@ -3,4 +3,6 @@
     <dimen name="badge_size">48dp</dimen>
     <dimen name="badge_margin">12dp</dimen>
     <dimen name="badge_radius">16dp</dimen>
+    <dimen name="settings_padding">24dp</dimen>
+    <dimen name="settings_gap">20dp</dimen>
 </resources>

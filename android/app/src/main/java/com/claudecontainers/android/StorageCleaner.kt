@@ -37,16 +37,32 @@ object StorageCleaner {
         }
     }
 
-    /** Process any queued deletions. Call from ClaudeApp.onCreate before any
-     *  WebView is created, so no live WebView holds the directories. */
-    fun processPending(filesDir: File) {
+    /**
+     * Process any queued deletions.
+     *
+     * [protectedIds] are containers currently bound to a warm host process —
+     * their storage directory may be open, so skip them and leave them queued
+     * for a later pass (they are unbound before being enqueued, so this is a
+     * belt-and-braces guard against a stale queue entry).
+     *
+     * Safe to call from any process, but never on the UI thread: wiping a large
+     * WebView cache can take seconds.
+     */
+    fun processPending(filesDir: File, protectedIds: Set<String> = emptySet()) {
         val ids = load(filesDir)
         if (ids.isEmpty()) return
-        for (id in ids) deleteNow(filesDir, id)
-        try {
-            pendingFile(filesDir).delete()
-        } catch (e: Exception) {
-            // best effort
+        val deletable = ids.filter { it !in protectedIds }
+        if (deletable.isEmpty()) return
+        for (id in deletable) deleteNow(filesDir, id)
+        val remaining = ids.filter { it in protectedIds }.toSet()
+        if (remaining.isEmpty()) {
+            try {
+                pendingFile(filesDir).delete()
+            } catch (e: Exception) {
+                // best effort
+            }
+        } else {
+            save(filesDir, remaining)
         }
     }
 

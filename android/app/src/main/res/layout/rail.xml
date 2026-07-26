@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="UseCompoundDrawables"
     android:id="@+id/rail_root"
     android:layout_width="@dimen/rail_width"
     android:layout_height="match_parent"
@@ -8,13 +10,20 @@
     android:gravity="center_horizontal"
     android:paddingTop="@dimen/badge_margin">
 
-    <LinearLayout
-        android:id="@+id/badge_container"
+    <!-- Scrolls so the add/settings badges stay reachable with many containers. -->
+    <ScrollView
         android:layout_width="wrap_content"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:orientation="vertical"
-        android:gravity="center_horizontal" />
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:id="@+id/badge_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_horizontal" />
+    </ScrollView>
 
     <FrameLayout
         android:id="@+id/add_badge"
@@ -31,5 +40,21 @@
             android:text="+"
             android:textColor="@color/badge_text"
             android:textSize="26sp" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:id="@+id/settings_badge"
+        android:layout_width="@dimen/badge_size"
+        android:layout_height="@dimen/badge_size"
+        android:layout_marginBottom="@dimen/badge_margin"
+        android:background="@drawable/badge_muted_bg"
+        android:foreground="?android:attr/selectableItemBackground">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            android:src="@android:drawable/ic_menu_preferences"
+            android:contentDescription="@string/settings_title" />
     </FrameLayout>
 </LinearLayout>

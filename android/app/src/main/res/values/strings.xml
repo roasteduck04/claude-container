@@ -1,3 +1,21 @@
 <resources>
     <string name="app_name">Claude Containers</string>
+
+    <string name="settings_title">Settings</string>
+    <string name="settings_done">Done</string>
+
+    <string name="settings_group_performance">Performance &amp; memory</string>
+    <string name="settings_warm_slots">Warm containers</string>
+    <string name="settings_warm_slots_value">Warm containers: %1$d</string>
+    <string name="settings_warm_slots_hint">How many containers stay loaded so switching is instant. Each one keeps a full browser session in memory. Lower this if the app feels sluggish or keeps getting closed in the background.</string>
+
+    <string name="settings_group_reading">Reading</string>
+    <string name="settings_text_zoom">Text size</string>
+    <string name="settings_text_zoom_value">Text size: %1$d%%</string>
+    <string name="settings_keyboard">Keep the keyboard closed on open</string>
+    <string name="settings_keyboard_hint">Claude focuses the message box as soon as a page loads, which pops the keyboard up every time. Turn this off to start typing right away instead.</string>
+
+    <string name="settings_group_behavior">Behavior</string>
+    <string name="settings_resume">Reopen the last container on launch</string>
+    <string name="settings_confirm_delete">Ask before removing a container</string>
 </resources>

@@ -16,9 +16,9 @@ background when you switch, so drafts and scroll position are preserved.
 
 An experimental native Android port lives in [`android/`](android/). It
 recreates the isolated multi-session concept using per-process WebView
-storage (each container gets its own `setDataDirectorySuffix`, switched via a
-process relaunch). See [`android/README.md`](android/README.md) to build and
-install the APK.
+storage — each container gets its own `setDataDirectorySuffix`, hosted in its
+own process, so up to four stay warm and switching between them is instant.
+See [`android/README.md`](android/README.md) to build and install the APK.
 
 <br>
 

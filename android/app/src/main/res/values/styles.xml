@@ -1,0 +1,71 @@
+<resources>
+    <!-- Activity transitions are suppressed app-wide: switching containers can
+         reorder or respawn an Activity, and the default open/close animation
+         made that read as the whole app restarting. -->
+    <style name="NoTransition" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@null</item>
+        <item name="android:activityOpenExitAnimation">@null</item>
+        <item name="android:activityCloseEnterAnimation">@null</item>
+        <item name="android:activityCloseExitAnimation">@null</item>
+        <item name="android:taskOpenEnterAnimation">@null</item>
+        <item name="android:taskOpenExitAnimation">@null</item>
+        <item name="android:taskCloseEnterAnimation">@null</item>
+        <item name="android:taskCloseExitAnimation">@null</item>
+        <item name="android:taskToFrontEnterAnimation">@null</item>
+        <item name="android:taskToFrontExitAnimation">@null</item>
+        <item name="android:taskToBackEnterAnimation">@null</item>
+        <item name="android:taskToBackExitAnimation">@null</item>
+    </style>
+
+    <style name="Theme.ClaudeContainers" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Matches the WebView surface so a respawning container never flashes
+             white between processes. -->
+        <item name="android:windowBackground">@color/content_bg</item>
+        <item name="android:windowAnimationStyle">@style/NoTransition</item>
+    </style>
+
+    <style name="SettingsTitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/badge_text</item>
+        <item name="android:textSize">24sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:paddingBottom">8dp</item>
+    </style>
+
+    <style name="SettingsGroup">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/accent</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0.08</item>
+        <item name="android:paddingTop">24dp</item>
+        <item name="android:paddingBottom">8dp</item>
+    </style>
+
+    <style name="SettingsLabel">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/badge_text</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+
+    <style name="SettingsHint">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:paddingTop">2dp</item>
+        <item name="android:paddingBottom">4dp</item>
+    </style>
+
+    <style name="SettingsSwitch">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/badge_text</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:paddingTop">8dp</item>
+        <item name="android:paddingBottom">8dp</item>
+    </style>
+</resources>

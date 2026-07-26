@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/content_bg"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/settings_padding">
+
+        <TextView
+            style="@style/SettingsTitle"
+            android:text="@string/settings_title" />
+
+        <!-- Performance -->
+        <TextView
+            style="@style/SettingsGroup"
+            android:text="@string/settings_group_performance" />
+
+        <TextView
+            android:id="@+id/warm_slots_label"
+            style="@style/SettingsLabel"
+            android:text="@string/settings_warm_slots" />
+
+        <TextView
+            style="@style/SettingsHint"
+            android:text="@string/settings_warm_slots_hint" />
+
+        <SeekBar
+            android:id="@+id/warm_slots_seek"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="3"
+            android:layout_marginBottom="@dimen/settings_gap" />
+
+        <!-- Reading -->
+        <TextView
+            style="@style/SettingsGroup"
+            android:text="@string/settings_group_reading" />
+
+        <TextView
+            android:id="@+id/text_zoom_label"
+            style="@style/SettingsLabel"
+            android:text="@string/settings_text_zoom" />
+
+        <SeekBar
+            android:id="@+id/text_zoom_seek"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="22"
+            android:layout_marginBottom="@dimen/settings_gap" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/keyboard_switch"
+            style="@style/SettingsSwitch"
+            android:text="@string/settings_keyboard" />
+
+        <TextView
+            style="@style/SettingsHint"
+            android:text="@string/settings_keyboard_hint" />
+
+        <!-- Behavior -->
+        <TextView
+            style="@style/SettingsGroup"
+            android:text="@string/settings_group_behavior" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/resume_switch"
+            style="@style/SettingsSwitch"
+            android:text="@string/settings_resume" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/confirm_switch"
+            style="@style/SettingsSwitch"
+            android:text="@string/settings_confirm_delete" />
+
+        <Button
+            android:id="@+id/done_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="@string/settings_done" />
+    </LinearLayout>
+</ScrollView>

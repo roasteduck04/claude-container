@@ -3,8 +3,6 @@ package com.claudecontainers.android
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 
 class ContainerStore(private val dir: File) {
 
@@ -42,7 +40,7 @@ class ContainerStore(private val dir: File) {
                     .put("color", c.color)
             )
         }
-        writeAtomic(arr.toString())
+        AtomicWrite.write(dir, "containers.json", arr.toString())
     }
 
     fun add(name: String, color: String): Container {
@@ -71,15 +69,5 @@ class ContainerStore(private val dir: File) {
     private fun newId(): String {
         counter += 1
         return "c${System.currentTimeMillis()}_$counter"
-    }
-
-    private fun writeAtomic(text: String) {
-        if (!dir.exists()) dir.mkdirs()
-        val tmp = File(dir, "containers.json.tmp")
-        tmp.writeText(text)
-        Files.move(
-            tmp.toPath(), file.toPath(),
-            StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE,
-        )
     }
 }

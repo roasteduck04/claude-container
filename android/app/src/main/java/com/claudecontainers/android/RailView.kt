@@ -17,15 +17,19 @@ class RailView @JvmOverloads constructor(
     var onSelect: (Container) -> Unit = {}
     var onLongPress: (Container) -> Unit = {}
     var onAdd: () -> Unit = {}
+    var onSettings: () -> Unit = {}
 
     private val badgeContainer: LinearLayout
     private val addBadge: FrameLayout
+    private val settingsBadge: FrameLayout
 
     init {
         LayoutInflater.from(context).inflate(R.layout.rail, this, true)
         badgeContainer = findViewById(R.id.badge_container)
         addBadge = findViewById(R.id.add_badge)
         addBadge.setOnClickListener { onAdd() }
+        settingsBadge = findViewById(R.id.settings_badge)
+        settingsBadge.setOnClickListener { onSettings() }
     }
 
     fun render(containers: List<Container>, activeId: String?) {
