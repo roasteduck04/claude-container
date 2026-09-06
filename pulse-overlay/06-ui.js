@@ -414,8 +414,29 @@
 				modelSelector.parentElement?.parentElement?.parentElement;
 			if (!toolbarRow) return;
 
-			if (toolbarRow.nextElementSibling !== this.usageLine) {
-				toolbarRow.after(this.usageLine);
+			// claude.ai now renders the toolbar row absolutely-positioned
+			// (pinned to the bottom of the input box) instead of in normal
+			// flow. Inserting the usage line right after it as a DOM sibling
+			// no longer pushes it into its own row below — it lands in the
+			// same flow position and gets painted over by the (higher
+			// z-order) toolbar buttons. Walk up to the row's own positioning
+			// container instead, so the usage line lands in normal flow
+			// below the whole input box rather than under the toolbar.
+			const rowPosition = window.getComputedStyle(toolbarRow).position;
+			let anchor = toolbarRow;
+			if (rowPosition === 'absolute' || rowPosition === 'fixed') {
+				let cur = toolbarRow.parentElement;
+				while (cur && cur !== document.body) {
+					if (window.getComputedStyle(cur).position !== 'static') {
+						anchor = cur;
+						break;
+					}
+					cur = cur.parentElement;
+				}
+			}
+
+			if (anchor.nextElementSibling !== this.usageLine) {
+				anchor.after(this.usageLine);
 			}
 			this.refreshProgressChrome();
 		}
