@@ -299,6 +299,13 @@ gaps, roughly grouped:
 - No offline/DNS-failure UI — a failed load just shows Chromium's default
   error page inside the BrowserView. (Loading spinners, `render-process-gone`
   crash recovery, and in-rail confirm/alert dialogs are now handled.)
+- The usage limits overlay (`pulse-overlay/`) locates its anchor points in
+  claude.ai's page by walking the DOM for structural patterns (flex rows,
+  specific `data-testid`s), since it isn't an official API. claude.ai has
+  changed this layout at least twice recently and silently broken the
+  overlay's positioning each time — there's no health-check or fallback UI
+  if this drifts again, so a stray/misplaced usage bar is the first symptom
+  to watch for after a claude.ai frontend update.
 
 **Features not built yet**
 - No drag-to-reorder containers in the rail.
