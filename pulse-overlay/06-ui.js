@@ -389,6 +389,28 @@
 			const modelSelector = document.querySelector(CC.DOM.MODEL_SELECTOR_DROPDOWN);
 			if (!modelSelector) return;
 
+			// The composer's bottom "chin" row (disclaimer text and the
+			// model selector/mic/send controls, laid out side by side) is a
+			// narrowly-scoped, reliable anchor: a normal-flow flex row with
+			// justify-content: space-between sitting right at the bottom
+			// edge of the input box. Try it first — the looser "flex row
+			// with more than one button" walk below can match a much
+			// higher, unrelated ancestor (e.g. the whole scrollable message
+			// list, which also has a flex row with many buttons nested in
+			// it), landing the usage line at the bottom of the page instead
+			// of right under the input box.
+			const findChinRow = (el) => {
+				let cur = el.parentElement;
+				while (cur && cur !== document.body) {
+					const style = window.getComputedStyle(cur);
+					if (style.display === 'flex' && style.flexDirection === 'row' && style.justifyContent === 'space-between') {
+						return cur;
+					}
+					cur = cur.parentElement;
+				}
+				return null;
+			};
+
 			const gridContainer = modelSelector.closest('[data-testid="chat-input-grid-container"]');
 			const gridArea = modelSelector.closest('[data-testid="chat-input-grid-area"]');
 
@@ -409,19 +431,20 @@
 			};
 
 			const toolbarRow =
+				findChinRow(modelSelector) ||
 				(gridContainer ? findToolbarRow(modelSelector, gridArea || gridContainer) : null) ||
 				findToolbarRow(modelSelector) ||
 				modelSelector.parentElement?.parentElement?.parentElement;
 			if (!toolbarRow) return;
 
-			// claude.ai now renders the toolbar row absolutely-positioned
-			// (pinned to the bottom of the input box) instead of in normal
-			// flow. Inserting the usage line right after it as a DOM sibling
-			// no longer pushes it into its own row below — it lands in the
-			// same flow position and gets painted over by the (higher
-			// z-order) toolbar buttons. Walk up to the row's own positioning
-			// container instead, so the usage line lands in normal flow
-			// below the whole input box rather than under the toolbar.
+			// claude.ai sometimes renders the matched row absolutely-
+			// positioned (pinned to the bottom of the input box) instead of
+			// in normal flow. Inserting the usage line right after such a
+			// row as a DOM sibling doesn't push it into its own row below —
+			// it lands in the same flow position and gets painted over by
+			// the (higher z-order) row contents. Walk up to the row's own
+			// positioning container instead, so the usage line lands in
+			// normal flow below the whole input box.
 			const rowPosition = window.getComputedStyle(toolbarRow).position;
 			let anchor = toolbarRow;
 			if (rowPosition === 'absolute' || rowPosition === 'fixed') {
